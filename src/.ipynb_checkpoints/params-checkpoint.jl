@@ -1,0 +1,17 @@
+N = 10
+t = 1
+Θ = 0
+lattice = "square-octagon"
+nSites = 4 * N ^ 2
+n_up = 0 * ones(Float64, nSites)
+n_dn = 0 * ones(Float64, nSites)
+# deltaOld = ones(ComplexF64, nSites)
+deltaOld = ones(Float64, nSites)
+μ = 0.5
+U = 3 * t
+J = 0
+T = 0
+impuritySite = 357
+tMatfileName = "01-input-files/ham_$(N)_$Θ"
+isComplexCalc = false
+maxCount = 100
