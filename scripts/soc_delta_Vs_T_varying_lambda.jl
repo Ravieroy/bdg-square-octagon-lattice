@@ -1,14 +1,21 @@
 #-----------------------------------
 #   DESCRIPTION: This program calculates the order parameter(Δ) for various
-#   values of on-site interaction U and λ for spinfull case.
+#   values of temperature T and lambda for spinfull case.
 #
-#   It runs the program for given values of λ in parallel and stores the
-#   results in a text file. This program runs the U-loop in series and thus
-#   it will be slower if only one calculation for λ is needed. It is better to
-#   run for U in parallel and get the results much faster.
+#   It runs the program for given values of lambda in parallel and stores the
+#   results in a text file. This program runs the T-loop in series and thus
+#   it will be slower if only one calculation for lambda is needed. It is better
+#   to run for T in parallel and get the results much faster.
 #
-#   This program can be used in conjunction with makegrid.py to generate a 3D
-#   plot in the U-μ-Δ grid.
+#   Following common error means that check_rel_tol got two different types of
+#   inputs. This usually happens if the calculation will have Complex values
+#   and initial values provided for deltaOld is Float. So this particular script
+#   in its present form won't work for lambda=0. You can make it work with a
+#   conditional statement, or simply use the non-spinfull version of this
+#
+#   ERROR: LoadError: MethodError: no method matching
+#   The function `check_rel_tol` exists, but no method is defined for
+#   this combination of argument types.
 
 using Distributed
 @everywhere begin
@@ -32,12 +39,12 @@ end # module everywhere end
 @everywhere using .GeneralUtils
 @everywhere using .LoggingUtils
 
-@everywhere function main(λ)
-    logFileName = "$(logFolder)lambda_$λ.log"
-    fileName = "$(saveInFolder)lambda_$λ.txt"
-    list = ["T", "ΔAvg"]
-    message = string("Running for λ=$λ, id=$(myid())")
-    write_log(logFileName, message)
+@everywhere function main(lambda)
+    logFile = "$(logFolder)lambda_$lambda.log"
+    fileName = "$(saveInFolder)lambda_$lambda.txt"
+    list = ["T", "deltaAvg"]
+    message = string("Running for lambda=$lambda, id=$(myid())")
+    write_log(logFile, message)
     if !isfile(fileName)
         open(fileName, "a") do io
             println(io, join(list, '\t'))
@@ -47,57 +54,56 @@ end # module everywhere end
     for T in TVals
         st = time()
         message = string("Running for T=$T")
-        write_log(logFileName, message)
-        deltaFinal, _, _, _, _, _, isConverged, endTime, count =
-            run_self_consistency_numpy_spinfull(deltaOld,
-                μ,
-                nSites,
-                n_up,
-                n_dn,
-                tMat,
-                U,
-                J,
-                x, y,
-                neighbors,
-                λ, λ_iso,
-                t_map,
-                iso_map,
-                impuritySite,
-                T,
-                tol=tol,
-                maxCount=maxCount,
-                isComplexCalc=isComplexCalc)
+        write_log(logFile, message)
+
+        # initial guesses
+        nUp = copy(nUp0)
+        nDn = copy(nDn0)
+        deltaOld = copy(deltaOld0)
+
+        deltaFinal, _, _, nAvg, evecs, evals, isConverged, endTime, count =
+            run_self_consistency_numpy_spinfull(
+            deltaOld,
+            mu, nSites,
+            nUp, nDn,
+            tMat, U, J,
+            x, y, neighbors,
+            lambda, lambdaIso,
+            tMap, isoMap,
+            impuritySite, T;
+            tol=tol, maxCount=maxCount,
+            includeHartree=includeHartree,
+            verboseLogIn=logFile
+        )
 
         if isConverged == true
             message = string("Converged in $count iterations in $endTime s")
-            write_log(logFileName, "SUCCESS", message)
+            write_log(logFile, "SUCCESS", message)
         else
             message = string("Calculation did not converge in $endTime s")
-            write_log(logFileName, "WARNING", message)
+            write_log(logFile, "WARNING", message)
         end
 
-        Δ̄ = mean(abs.(deltaFinal))
-        list = [T, Δ̄]
+        deltaAvg = mean(abs.(deltaFinal))
+        list = [T, deltaAvg]
         open(fileName, "a") do io
             println(io, join(list, '\t'))
         end
         deltaFinal = nothing
-        Δ̄ = nothing
+        deltaAvg = nothing
         et = time() - st
         message = string("Completed for T=$T in ", format_elapsed_time(et))
-        write_log(logFileName, message)
+        write_log(logFile, message)
     end
     GC.gc()
 end  # main end
 
 timestart = time()
 @everywhere begin
-    tMat = generate_t_matrix(tMatfileName)
-    df = CSV.read("$(dataSetFolder)df_square-octagon$N.csv", DataFrame)
-    x = df.x
-    y = df.y
-    neighbors = hcat(df.n1, df.n2, df.n3, df.n4)
-    t_map = generate_t_map(df, t2)
+    df = CSV.read(rawdfName, DataFrame)
+    x, y, neighbors = extract_geometry(df)
+    tMap = generate_t_map(neighbors; t1=1.0, t2=t2)
+    tMat = generate_t_matrix(tMatFileName)
     # iso_map = compute_iso_map(df)
     iso_map = nothing
 end
@@ -108,10 +114,10 @@ pf = @__FILE__
 # Detailed description of the program
 desc = """
 Calculates the order parameter (Δ) vs. Temperature (T).
-The program takes λVals as input and processes each value in parallel.
-For each λ, the program calculates and stores the following data:
+The program takes lambdaVals as input and processes each value in parallel.
+For each lambda, the program calculates and stores the following data:
     - T: Temperature
-    - ΔAvg: Average order parameter(Δ=ΔAvg for J=0)
+    - deltaAvg: Average order parameter(Δ=deltaAvg)
 """
 
 if !isfile(infoLogFileName)
@@ -120,7 +126,7 @@ if !isfile(infoLogFileName)
     write_log(infoLogFileName, desc)
 end
 
-pmap(main, λVals)
+pmap(main, lambdaVals)
 elapsed = time() - timestart
 timeNow, dateToday = get_present_time()
 println("($timeNow)Total Time Taken: ", format_elapsed_time(elapsed))

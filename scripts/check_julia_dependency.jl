@@ -10,17 +10,15 @@ library_list = [
     "HDF5",
     "JLD",
     "JLD2",
-    "KernelDensity",
-    "LatticeUtilities",
     "LinearAlgebra",
     "NPZ",
     "PyCall",
     "LaTeXStrings",
     "PyPlot",
     "Crayons",
-    "Random",
-    "StatsPlots",
-    "Plots"
+    "Plots",
+    "Printf",
+    "Statistics"
 ]
 
 io = IOBuffer()

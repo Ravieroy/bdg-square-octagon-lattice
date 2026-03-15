@@ -1,0 +1,37 @@
+N             = 5       # No. of Square-Octagon unit cells
+nSites        = 4 * N ^ 2       # Total no. of sites
+t2            = 1.0     # 2nd NN hopping parameter(i.e.,Intracell)
+# t3             = 1.0     # 3rd NN hopping parameter(i.e., intercell)
+λ             = 0.25        # Rashba SOC parameter
+λ_iso         = 0.0     # Intrinsic SOC parameter
+lattice       = "square-octagon"
+n_up          = ones(Float64, nSites)       # initial values of number density for up electrons
+n_dn          = ones(Float64, nSites)       # initial values of number density for down electrons
+deltaOld      = ones(ComplexF64, nSites)        # initial values of order parameter at each site
+# deltaOld      = ones(Float64, nSites)
+μ             = 0.0       # chemical potential
+U             = 2       # Interaction strength
+J             = 0       # Magnetic Impurity Strength
+T             = 0       # Temperature
+maxCount      = 200     # Maximum iterations for BdG convergence
+tol           = 1e-3    # Tolerance
+impuritySite  = 357       # Impurity Site
+t2Vals         = [0.0, 0.5, 1.0]
+# μVals         = range(-3, stop=4, length=21)
+μVals         = [0.0, -1.25]
+# λVals         = [0.0, 0.2]
+TVals         =  [0, 0.1, 0.5]
+# JVals         = range(0, stop=3, length=10)
+# JVals         = [0, 0.5, 1]
+UVals         = [0.5, 2, 4]
+isComplexCalc = true
+# isComplexCalc = false
+saveDataFrame = true
+dataSetFolder = "../data/"
+logFolder     = "../logs/"
+saveInFolder  = "../results/"
+tMatfileName  = "../data/ham_$(N)_t2_$t2"
+dfName        = "$(dataSetFolder)df_$lattice$N.csv"
+nnMapFileName = "$(dataSetFolder)NN_MAP"
+fileFormat    =  "pkl"
+# Θ             = 0.0
