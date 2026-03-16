@@ -1,3 +1,7 @@
+[![DOI](https://img.shields.io/badge/DOI-10.1103%2Ff7rt--5vwb-blue)](https://doi.org/10.1103/f7rt-5vwb)
+
+Code accompanying the paper: [Phys. Rev. B **113**, 104512 (2026)](https://doi.org/10.1103/f7rt-5vwb)
+
 This code uses the Bogoliubov-de-Gennes method for the spin full case to study the superconductivity for a very special type of lattice known as Square-Octagon lattice. The basics of the BdG method can be looked from the seminal paper by A.Ghosal et al. (PHYSICAL REVIEW B, VOLUME 65, 014501). The spinfull case can be studied by another beautiful set of studies by Andrzej Ptok (for e.g. in PHYSICAL REVIEW B 96, 184425 (2017))
 
 A mildly pedagogical set of notebooks are added in the `notebooks/tutorial` directory where I have tried to explain and contain certain parts of the programs for easy understanding.
@@ -57,7 +61,7 @@ In the current form following files are needed to run the calculation (say you a
 ## Workflow 
 
 1. **Step 0 :** Create the necessary directories. data, logs, results alongwith src and scripts
-2. **Step 1 :** Run Makefile for fresh calculation. `make fresh` (This will empty the data directory so if you want, take a backup of it else bring it back from assests directory)
+2. **Step 1 :** Run Makefile for fresh calculation. `make fresh` (This will empty the data directory so if you want, take a backup of it else bring it back from `assets` directory)
 3. **Step 2 :** Edit the `params.jl` file accordingly
 4. **Step 3 :** Run `julia -p <n> script_name.jl` on `n` cores using the script `script_name.jl`
 
